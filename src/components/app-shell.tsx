@@ -45,12 +45,12 @@ export function AppShell({ title, subtitle, children, fullWidth }: AppShellProps
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <Link href="/" className="block">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white font-bold text-sm">RF</div>
+          <Link href="/" className="block group">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] text-white font-bold text-sm shadow-sm group-hover:shadow-orange-900/40 transition-shadow">RF</div>
               <div>
-                <p className="text-sm font-bold text-white leading-tight">ResumeForge</p>
-                <p className="text-[10px] text-[var(--sidebar-muted)] leading-tight">AI Resume Builder</p>
+                <p className="text-sm font-bold text-white leading-tight">ResumeForge <span style={{color: "var(--accent)"}}>AI</span></p>
+                <p className="text-[10px] text-[var(--sidebar-muted)] leading-tight">Free · Private · No sign-up</p>
               </div>
             </div>
           </Link>
@@ -79,14 +79,17 @@ export function AppShell({ title, subtitle, children, fullWidth }: AppShellProps
           ))}
         </nav>
 
-        <div className="border-t border-white/8 p-5">
-          <Link href="/dashboard" className={`sidebar-nav-item mb-1 ${pathname === "/dashboard" ? "active" : ""}`}>
+        <div className="border-t border-white/8 p-4">
+          <Link href="/dashboard" className={`sidebar-nav-item mb-2 ${pathname === "/dashboard" ? "active" : ""}`}>
             <span className="text-[15px] w-5 text-center">⊞</span>
             <span>Dashboard</span>
           </Link>
-          <div className="mt-4 rounded-lg bg-white/6 p-3">
-            <p className="text-[11px] font-semibold text-[var(--sidebar-text)]">Local AI Active</p>
-            <p className="text-[10px] text-[var(--sidebar-muted)] mt-0.5">Free · Private · No tracking</p>
+          <div className="rounded-xl border border-white/8 bg-white/4 p-3">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+              <p className="text-[11px] font-semibold text-[var(--sidebar-text)]">Local AI Active</p>
+            </div>
+            <p className="text-[10px] text-[var(--sidebar-muted)]">Free · Private · No tracking</p>
           </div>
         </div>
       </aside>
@@ -94,16 +97,14 @@ export function AppShell({ title, subtitle, children, fullWidth }: AppShellProps
       {/* Main content */}
       <div className="main-with-sidebar flex-1 atmosphere">
         {/* Top bar */}
-        <div className="sticky top-0 z-40 border-b border-[var(--stroke)] bg-white/80 backdrop-blur-md px-8 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-[var(--foreground)] leading-tight">{title}</h1>
-            {subtitle && <p className="text-xs text-[var(--ink-soft)]">{subtitle}</p>}
+        {title && (
+          <div className="sticky top-0 z-40 border-b border-[var(--stroke)] bg-white/90 backdrop-blur-md px-8 py-3 flex items-center justify-between">
+            <div>
+              <h1 className="text-base font-bold text-[var(--foreground)] leading-tight">{title}</h1>
+              {subtitle && <p className="text-xs text-[var(--ink-soft)] mt-0.5">{subtitle}</p>}
+            </div>
           </div>
-          {/* Mobile nav toggle placeholder */}
-          <div className="flex items-center gap-2 md:hidden">
-            <span className="text-xs text-[var(--ink-soft)]">☰</span>
-          </div>
-        </div>
+        )}
 
         {/* Page content */}
         <div className={`${fullWidth ? "" : "mx-auto max-w-6xl"} p-6 md:p-8`}>

@@ -54,36 +54,27 @@ export default function AtsScorePage() {
         {/* Input panel */}
         <div className="space-y-4">
 
-          {/* Scoring mode toggle */}
-          <div className="card p-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-[var(--ink-soft)] mb-3">Scoring Mode</p>
-            <div className="flex rounded-xl border border-[var(--stroke)] overflow-hidden">
-              <button
-                onClick={() => setMode("heuristic")}
-                className={`flex-1 px-4 py-3 text-sm font-semibold transition-all ${
-                  mode === "heuristic"
-                    ? "bg-[var(--foreground)] text-white"
-                    : "bg-white text-[var(--ink-soft)] hover:bg-[var(--panel)]"
-                }`}
-              >
-                ◎ Heuristic
-              </button>
-              <button
-                onClick={() => setMode("ai")}
-                className={`flex-1 px-4 py-3 text-sm font-semibold transition-all border-l border-[var(--stroke)] ${
-                  mode === "ai"
-                    ? "bg-[var(--accent)] text-white"
-                    : "bg-white text-[var(--ink-soft)] hover:bg-[var(--panel)]"
-                }`}
-              >
-                ✦ AI Enhanced
-              </button>
+          {/* AI toggle */}
+          <div className="flex items-center justify-between rounded-xl border border-[var(--stroke)] bg-white px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-[var(--foreground)]">AI Enhanced Scoring</p>
+              <p className="text-xs text-[var(--ink-soft)] mt-0.5">
+                {mode === "ai"
+                  ? "Blends keyword match + LLM semantic analysis, bullet quality & section feedback"
+                  : "Fast keyword-matching — same logic real ATS systems use"}
+              </p>
             </div>
-            <p className="mt-2.5 text-xs text-[var(--ink-soft)]">
-              {mode === "heuristic"
-                ? "Fast keyword-matching score — same logic real ATS systems use. Always free, instant."
-                : "Blends keyword matching with LLM semantic analysis: bullet quality, section feedback, holistic scoring. Requires local AI or OpenAI key."}
-            </p>
+            <button
+              onClick={() => setMode(mode === "ai" ? "heuristic" : "ai")}
+              className="relative flex-shrink-0 ml-4 h-6 w-11 rounded-full transition-colors duration-200"
+              style={{ backgroundColor: mode === "ai" ? "var(--accent)" : "var(--stroke)" }}
+              aria-label="Toggle AI scoring"
+            >
+              <span
+                className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200"
+                style={{ transform: mode === "ai" ? "translateX(20px)" : "translateX(2px)" }}
+              />
+            </button>
           </div>
 
           <div className="rf-field">
@@ -92,13 +83,13 @@ export default function AtsScorePage() {
             <textarea
               className="rf-textarea mt-1"
               rows={14}
-              placeholder="Paste your full resume text here\u2026"
+              placeholder="Paste your full resume text here…"
               value={resumeText}
               onChange={(e) => setResumeText(e.target.value)}
             />
           </div>
           <div className="rf-field">
-            <label className="rf-label">Job Description <span className="rf-hint inline normal-case font-normal">\u2014 optional but strongly recommended</span></label>
+            <label className="rf-label">Job Description <span className="rf-hint inline normal-case font-normal">— optional but strongly recommended</span></label>
             <textarea
               className="rf-textarea"
               rows={6}
@@ -118,12 +109,12 @@ export default function AtsScorePage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                {mode === "ai" ? "AI Analysing\u2026" : "Analysing\u2026"}
+                {mode === "ai" ? "AI Analysing…" : "Analysing…"}
               </span>
             ) : mode === "ai" ? (
-              "\u2726  Run AI-Enhanced ATS Check"
+              "✦  Run AI-Enhanced ATS Check"
             ) : (
-              "\u25ce  Run ATS Check"
+              "Run ATS Check"
             )}
           </button>
         </div>
@@ -132,7 +123,7 @@ export default function AtsScorePage() {
         <div>
           {!result ? (
             <div className="flex h-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--stroke)] py-20 text-center">
-              <p className="text-4xl mb-3">\u25ce</p>
+              <p className="text-4xl mb-3">◎</p>
               <p className="font-semibold text-[var(--foreground)]">Your ATS report will appear here</p>
               <p className="mt-1 text-sm text-[var(--ink-soft)] max-w-xs">Paste your resume and optionally a job description, then click Run ATS Check.</p>
             </div>
@@ -167,7 +158,7 @@ export default function AtsScorePage() {
                   </p>
                   {result.aiInsights && (
                     <p className="text-xs text-[var(--ink-soft)] mt-1">
-                      Semantic score: <span className="font-bold">{result.aiInsights.semanticScore}/100</span> \u00b7 Blended with keyword match
+                      Semantic score: <span className="font-bold">{result.aiInsights.semanticScore}/100</span> · Blended with keyword match
                     </p>
                   )}
                 </div>

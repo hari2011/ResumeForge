@@ -42,6 +42,35 @@ export interface ResumeAnalysis {
   topImprovements: string[];
 }
 
+export interface ParsedResumeStructure {
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedin: string;
+  targetRole: string;
+  summary: string;
+  experience: Array<{
+    company: string;
+    title: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    description: string;
+  }>;
+  education: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    startYear: string;
+    endYear: string;
+    gpa: string;
+  }>;
+  skills: string[];
+  certifications: string;
+}
+
 export interface AtsScoreResult {
   score: number;
   strengths: string[];

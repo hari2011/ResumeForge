@@ -1,0 +1,488 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f3ea;
+  --foreground: #1b1f23;
+  --ink-soft: #5a6672;
+  --accent: #f26722;
+  --accent-alt: #0f766e;
+  --panel: #ffffff;
+  --panel-soft: #fff9ee;
+  --stroke: #e8e0d0;
+  --stroke-strong: #ccc0aa;
+  --sidebar-bg: #1b1f23;
+  --sidebar-text: #e8e4db;
+  --sidebar-muted: #8a9099;
+  --sidebar-active: #f26722;
+  --input-bg: #fafaf8;
+  --input-border: #ddd6c8;
+  --input-focus: #f26722;
+  --section-label: #0f766e;
+  --danger: #dc2626;
+  --success: #0f766e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-space-grotesk);
+  --font-serif: var(--font-playfair-display);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Typography ─────────────────────────────────────────── */
+.headline {
+  font-family: var(--font-playfair-display), Georgia, serif;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* ── Backgrounds ────────────────────────────────────────── */
+.atmosphere {
+  background-image:
+    radial-gradient(circle at 10% 20%, #f7dcc2 0%, transparent 45%),
+    radial-gradient(circle at 90% 10%, #cae8e5 0%, transparent 40%),
+    linear-gradient(180deg, #fef8ec 0%, #f6f3ea 100%);
+}
+
+.grid-lines {
+  background-image:
+    linear-gradient(to right, rgba(15, 118, 110, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 118, 110, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ── Cards ──────────────────────────────────────────────── */
+.card {
+  border: 1px solid var(--stroke);
+  background: var(--panel);
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.card-soft {
+  border: 1px solid var(--stroke);
+  background: var(--panel-soft);
+  border-radius: 16px;
+}
+
+.section-card {
+  border: 1px solid var(--stroke);
+  background: #fff;
+  border-radius: 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.section-card:focus-within {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(242, 103, 34, 0.1);
+}
+
+/* ── Buttons ────────────────────────────────────────────── */
+.button-primary {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.button-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(242, 103, 34, 0.3);
+  background: #e05a18;
+}
+
+.button-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.button-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.button-secondary {
+  border: 1.5px solid var(--stroke-strong);
+  background: #fff;
+  color: var(--foreground);
+  font-weight: 500;
+  border-radius: 10px;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.button-secondary:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: #fff8f4;
+  transform: translateY(-1px);
+}
+
+.button-ghost {
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.button-ghost:hover {
+  background: rgba(0,0,0,0.06);
+  color: var(--foreground);
+}
+
+.button-danger {
+  background: transparent;
+  border: 1px solid #fca5a5;
+  color: var(--danger);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+.button-danger:hover {
+  background: #fef2f2;
+}
+
+/* ── Form Inputs ────────────────────────────────────────── */
+.rf-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.925rem;
+  font-family: inherit;
+  color: var(--foreground);
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  outline: none;
+  appearance: none;
+}
+
+.rf-input:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(242, 103, 34, 0.12);
+  background: #fff;
+}
+
+.rf-input::placeholder {
+  color: #bbb0a0;
+}
+
+.rf-input:disabled {
+  background: #f5f5f0;
+  color: var(--ink-soft);
+  cursor: not-allowed;
+}
+
+.rf-textarea {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.925rem;
+  font-family: inherit;
+  color: var(--foreground);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.6;
+}
+
+.rf-textarea:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(242, 103, 34, 0.12);
+  background: #fff;
+}
+
+.rf-textarea::placeholder {
+  color: #bbb0a0;
+}
+
+.rf-select {
+  width: 100%;
+  background: var(--input-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border: 1.5px solid var(--input-border);
+  border-radius: 10px;
+  padding: 10px 36px 10px 14px;
+  font-size: 0.925rem;
+  font-family: inherit;
+  color: var(--foreground);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.rf-select:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgba(242, 103, 34, 0.12);
+  background-color: #fff;
+}
+
+.rf-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.rf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rf-hint {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+/* ── Section Headers (collapsible) ──────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.section-header:hover {
+  background: #f9f5ee;
+}
+
+.section-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--section-label);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Tags / Skill chips ─────────────────────────────────── */
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(242, 103, 34, 0.1);
+  color: var(--accent);
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(242, 103, 34, 0.2);
+  transition: background 0.12s;
+}
+
+.skill-tag-neutral {
+  background: rgba(0,0,0,0.05);
+  color: var(--ink-soft);
+  border-color: var(--stroke);
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.skill-tag-neutral:hover {
+  background: rgba(242, 103, 34, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Badge / Pill ───────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.badge-green {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-orange {
+  background: #fff0e6;
+  color: #c2440e;
+}
+
+.badge-amber {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* ── Resume Document Preview ────────────────────────────── */
+.resume-doc {
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
+  border-radius: 4px;
+  font-family: 'Georgia', serif;
+  font-size: 9.5px;
+  line-height: 1.5;
+  color: #1a1a1a;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Animations ─────────────────────────────────────────── */
+.rise-in {
+  animation: rise-in 0.5s ease forwards;
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+@keyframes rise-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fade-in 0.3s ease forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Sidebar ────────────────────────────────────────────── */
+.sidebar {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  width: 240px;
+  min-height: 100vh;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 50;
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin: 2px 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--sidebar-muted);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-nav-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--sidebar-text);
+}
+
+.sidebar-nav-item.active {
+  background: rgba(242, 103, 34, 0.18);
+  color: var(--sidebar-active);
+  font-weight: 600;
+}
+
+.main-with-sidebar {
+  margin-left: 240px;
+  min-height: 100vh;
+}
+
+/* Mobile sidebar override */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  .main-with-sidebar {
+    margin-left: 0;
+  }
+}
+
+/* ── ATS Score Ring ─────────────────────────────────────── */
+.ats-score-ring {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  background: conic-gradient(var(--accent) calc(var(--pct) * 1%), #e8e0d0 0%);
+  position: relative;
+}
+
+.ats-score-ring::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: white;
+}
+
+.ats-score-ring span {
+  position: relative;
+  z-index: 1;
+}

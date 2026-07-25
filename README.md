@@ -8,7 +8,8 @@ ResumeForge AI is a full-stack Next.js application that builds a resume from scr
 
 - **One builder, two modes** — `/new-resume` opens a mode-selection screen: *Build from Scratch* or *Upload & Improve*. `/improve-resume` now simply redirects here, so all your old links still work.
 - **Import from LinkedIn** — export your own LinkedIn profile as a PDF (`Profile → More → Save to PDF`) and upload it, or paste the profile text directly. We never log in to or scrape LinkedIn on your behalf.
-- **40+ resume templates** — 21 curated color palettes × 2 layout engines (single-column and two-column sidebar) across 8 categories: Modern, Classic, Minimal, Creative, Executive, Academic, Technical, and ATS-safe. Filter by category directly inside the builder or on `/templates`.
+- **40+ resume templates** — 21 curated color palettes across 7 distinct layout engines (single-column, two-column sidebar, compact ATS, timeline, centered, hero-sidebar, and editorial label-rows) spanning 8 categories: Modern, Classic, Minimal, Creative, Executive, Academic, Technical, and ATS-safe. Filter by category directly inside the builder or on `/templates`.
+- **Local resume library (no login)** — click "📚 Save to Library" to persist a resume to a local SQLite database on your machine. The `/dashboard` lists every saved resume with Open, Duplicate, and Delete actions — like a self-hosted dashboard, minus the accounts and the server.
 - **Pixel-perfect PDF export** — the "🖨 Download PDF" button opens a dedicated print view (`/resume-print`) that renders your exact template (colors, layout, fonts) and triggers the browser's native print-to-PDF, so the download matches the on-screen design exactly.
 - **Live Resume Score (Build → Score → Target)** — a score panel recalculates on every keystroke while you fill in the form, with a section completion checklist and one-click "+" buttons to add missing job-description keywords straight into your Skills.
 - **Per-bullet AI rewrite** — click "✨ AI Improve" next to any experience entry to rewrite just that bullet block into stronger, metric-aware language.
@@ -24,7 +25,8 @@ ResumeForge AI is a full-stack Next.js application that builds a resume from scr
 - Resume proofreading/grammar-check API (heuristic + optional AI)
 - Per-bullet AI rewrite API
 - Pixel-perfect print-to-PDF export matching the chosen template exactly
-- 40+ templates across 8 categories and 2 layout engines
+- 40+ templates across 8 categories and 7 layout engines
+- Local resume library backed by SQLite (`/api/resumes`) — save, reopen, duplicate, and delete resumes from `/dashboard`, no account required
 - Market trends module with role-level demand signals
 - **Optional local LLM integration** (Ollama/llama.cpp) - free, offline, portable
 - Optional OpenAI integration with deterministic fallback everywhere
@@ -50,6 +52,7 @@ This build benchmarks against leading resume platforms — Kickresume, Rezi, Tea
 - Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS 4
+- SQLite (via Drizzle ORM + better-sqlite3) for the local, no-login resume library
 - Optional OpenAI SDK
 - Optional local LLM (Ollama/llama.cpp)
 

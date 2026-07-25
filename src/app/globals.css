@@ -544,8 +544,7 @@ body {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: 11pt;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.03em;
   margin: 3mm 0 0;
 }
 
@@ -614,18 +613,22 @@ body {
 }
 
 .rd-sidebar-body {
-  display: flex;
+  display: table;
+  table-layout: fixed;
+  width: 100%;
   min-height: 240mm;
 }
 
 .rd-sidebar-col {
+  display: table-cell;
+  vertical-align: top;
   width: 62mm;
-  flex-shrink: 0;
   padding: 8mm 10mm 14mm;
 }
 
 .rd-main-col {
-  flex: 1;
+  display: table-cell;
+  vertical-align: top;
   padding: 8mm 14mm 14mm 12mm;
 }
 
@@ -716,6 +719,71 @@ body {
   border: 1px solid;
 }
 
+/* ── Interactive skill proficiency dot-rating list ──────────── */
+.rd-skill-rated-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2mm 6mm;
+}
+
+.rd-skill-rated-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3mm;
+}
+
+.rd-skill-rated-name {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 9pt;
+  font-weight: 600;
+}
+
+.rd-skill-dots {
+  display: flex;
+  gap: 0.9mm;
+  flex-shrink: 0;
+}
+
+.rd-skill-dot {
+  width: 2mm;
+  height: 2mm;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ── Click-to-jump interactive preview sections ─────────────── */
+.rd-interactive-section {
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+  position: relative;
+}
+
+.rd-interactive-section:hover,
+.rd-interactive-section:focus-visible {
+  background-color: rgba(37, 99, 235, 0.06);
+  outline: none;
+}
+
+.rd-interactive-section:hover::after,
+.rd-interactive-section:focus-visible::after {
+  content: '✎ Click to edit';
+  position: absolute;
+  top: 1mm;
+  right: 1mm;
+  font-size: 7pt;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.85);
+  color: #fff;
+  padding: 1mm 2mm;
+  border-radius: 3px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  pointer-events: none;
+  z-index: 5;
+  white-space: nowrap;
+}
+
 /* ── Compact layout (ATS-maximal, monochrome, dense) ────────── */
 .rd-header-plain {
   padding: 12mm 16mm 5mm;
@@ -734,8 +802,7 @@ body {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: 10pt;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
   margin: 2mm 0 0;
 }
 
@@ -809,8 +876,7 @@ body {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   font-size: 10pt;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.04em;
   margin: 2mm 0 0;
 }
 
@@ -842,6 +908,112 @@ body {
 
 .rd-centered-layout .rd-heading {
   text-align: left;
+}
+
+/* ── Banner-sidebar layout (sidebar + colored hero card header) ── */
+.rd-header-panel {
+  border-radius: 4px;
+  padding: 8mm 9mm;
+  margin-bottom: 6mm;
+}
+
+.rd-name-panel {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 19pt;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.rd-role-panel {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 9.5pt;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin: 2mm 0 0;
+}
+
+.rd-contact-panel {
+  font-size: 8pt;
+  color: rgba(255,255,255,0.9);
+  margin: 4mm 0 0;
+  padding-top: 3mm;
+  border-top: 1px solid rgba(255,255,255,0.25);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1mm 4mm;
+}
+
+.rd-sidebar-photo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 5mm;
+}
+
+.rd-sidebar-photo-wrap .rd-photo {
+  width: 26mm;
+  height: 26mm;
+  border-color: rgba(0,0,0,0.1);
+}
+
+/* ── Label-rows layout (editorial label + content section rows) ── */
+.rd-header-label {
+  padding: 14mm 16mm 6mm;
+  text-align: center;
+  border-bottom: 1.5px solid;
+}
+
+.rd-name-label {
+  font-size: 25pt;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.rd-role-label {
+  font-size: 10pt;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 2mm 0 0;
+}
+
+.rd-contact-label {
+  font-size: 8.5pt;
+  margin: 3mm 0 0;
+  opacity: 0.85;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1mm 4.5mm;
+}
+
+.rd-label-rows-layout .rd-section {
+  display: grid;
+  grid-template-columns: 34mm 1fr;
+  column-gap: 6mm;
+  row-gap: 2mm;
+  padding-top: 4mm;
+  margin-bottom: 4mm;
+  border-top: 1px solid rgba(0,0,0,0.14);
+}
+
+.rd-label-rows-layout .rd-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.rd-label-rows-layout .rd-heading {
+  grid-column: 1;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 0;
+  font-size: 9pt;
+  letter-spacing: 0.09em;
+}
+
+.rd-label-rows-layout .rd-section > *:not(.rd-heading) {
+  grid-column: 2;
 }
 
 /* ── Print mode ──────────────────────────────────────────── */

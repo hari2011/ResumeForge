@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { resumeTemplates } from "@/data/templates";
 
 const STATS = [
   { value: "ATS-Ready", label: "All templates pass ATS parsers" },
   { value: "AI-Powered", label: "Local & cloud AI supported" },
-  { value: "6 Templates", label: "Professional designs" },
+  { value: `${resumeTemplates.length} Templates`, label: "Professional designs" },
   { value: "100% Free", label: "No paywall, no sign-up" },
 ];
 
@@ -157,7 +158,7 @@ export default function Home() {
       <section className="bg-gray-50 border-b border-gray-100 px-6 py-16">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-10">
-            <h2 className="headline text-3xl font-bold text-gray-900 mb-2">6 Professional Templates</h2>
+            <h2 className="headline text-3xl font-bold text-gray-900 mb-2"> {resumeTemplates.length}  Professional Templates</h2>
             <p className="text-gray-500 text-sm">ATS-friendly designs from Modern to Executive — each fully customisable</p>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">

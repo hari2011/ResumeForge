@@ -117,6 +117,51 @@ function DocPreview({ template, selected }: { template: typeof resumeTemplates[0
     );
   }
 
+  if (layout === "banner-sidebar") {
+    return (
+      <div className={wrapperClass} style={wrapperStyle}>
+        <div className="flex h-full">
+          <div className="w-2/5 px-3 py-3 space-y-2.5" style={{ backgroundColor: `${colors.primary}0d` }}>
+            <div className="h-6 w-6 rounded-full mx-auto mb-2" style={{ backgroundColor: colors.accent, opacity: 0.4 }} />
+            <div><div className="h-1.5 w-4/5 rounded-sm mb-1.5" style={{ backgroundColor: colors.accent }} />{skillsRow}</div>
+            <div><div className="h-1.5 w-4/5 rounded-sm mb-1.5" style={{ backgroundColor: colors.accent }} /><div className="h-0.5 w-full rounded-sm opacity-30 mb-1" style={{ backgroundColor: colors.primary }} /><div className="h-0.5 w-4/5 rounded-sm opacity-25" style={{ backgroundColor: colors.primary }} /></div>
+          </div>
+          <div className="flex-1 px-3 py-3 space-y-3">
+            <div className="rounded-md px-2.5 py-2" style={{ backgroundColor: colors.primary }}>
+              <div className="h-2 w-3/4 rounded-sm" style={{ backgroundColor: "rgba(255,255,255,0.9)" }} />
+              <div className="mt-1 h-1 w-1/2 rounded-sm" style={{ backgroundColor: colors.accent }} />
+            </div>
+            <div><div className="h-1.5 w-1/2 rounded-sm mb-1.5" style={{ backgroundColor: colors.accent }} />{experienceRows()}</div>
+          </div>
+        </div>
+        {selectedBadge}
+      </div>
+    );
+  }
+
+  if (layout === "label-rows") {
+    return (
+      <div className={wrapperClass} style={wrapperStyle}>
+        <div className="px-4 py-4 flex flex-col items-center text-center" style={{ borderBottom: `2px solid ${colors.primary}` }}>
+          <div className="h-2.5 w-1/2 rounded-sm" style={{ backgroundColor: colors.primary }} />
+          <div className="mt-1.5 h-1.5 w-1/3 rounded-sm" style={{ backgroundColor: colors.accent }} />
+        </div>
+        <div className="px-4 py-3 space-y-0">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex gap-3 py-2" style={{ borderTop: i > 0 ? `1px solid ${colors.primary}22` : undefined }}>
+              <div className="h-1 w-1/4 rounded-sm flex-shrink-0" style={{ backgroundColor: colors.accent, opacity: i === 0 ? 1 : 0.6 }} />
+              <div className="flex-1 space-y-1">
+                <div className="h-1 w-full rounded-sm opacity-40" style={{ backgroundColor: colors.primary }} />
+                <div className="h-1 w-4/5 rounded-sm opacity-25" style={{ backgroundColor: colors.primary }} />
+              </div>
+            </div>
+          ))}
+        </div>
+        {selectedBadge}
+      </div>
+    );
+  }
+
   // single (default) — bold colored banner header
   return (
     <div className={wrapperClass} style={wrapperStyle}>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { ToggleSwitch } from "@/components/toggle-switch";
 import { AtsScoreResult } from "@/types/resume";
 
 type ScoringMode = "heuristic" | "ai";
@@ -64,17 +65,7 @@ export default function AtsScorePage() {
                   : "Fast keyword-matching — same logic real ATS systems use"}
               </p>
             </div>
-            <button
-              onClick={() => setMode(mode === "ai" ? "heuristic" : "ai")}
-              className="relative flex-shrink-0 ml-4 h-6 w-11 rounded-full transition-colors duration-200"
-              style={{ backgroundColor: mode === "ai" ? "var(--accent)" : "var(--stroke)" }}
-              aria-label="Toggle AI scoring"
-            >
-              <span
-                className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200"
-                style={{ transform: mode === "ai" ? "translateX(20px)" : "translateX(2px)" }}
-              />
-            </button>
+            <ToggleSwitch checked={mode === "ai"} onChange={(next) => setMode(next ? "ai" : "heuristic")} className="ml-4" ariaLabel="Toggle AI scoring" />
           </div>
 
           <div className="rf-field">

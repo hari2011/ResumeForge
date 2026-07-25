@@ -7,6 +7,7 @@ import { LiveResumeScore } from "@/components/live-resume-score";
 import { ProofreadPanel } from "@/components/proofread-panel";
 import { ResumeDocumentData, ScaledResumeDocument, DEFAULT_SECTION_ORDER } from "@/components/resume-document";
 import { TemplateThumbnail } from "@/components/template-thumbnail";
+import { ToggleSwitch } from "@/components/toggle-switch";
 import { serializeResumeForm } from "@/lib/resume-format";
 import { industries, industrySkills, marketCoreSkills, getEducationRecommendation } from "@/data/career-options";
 import { marketTrends } from "@/data/market-trends";
@@ -41,6 +42,9 @@ interface DraftPayload {
   customSections: CustomSection[];
   sectionOrder: string[];
   pageSize: "A4" | "Letter";
+  customAccentColor: string | null;
+  showSkillLevels: boolean;
+  skillLevels: Record<string, number>;
   savedAt: number;
 }
 
@@ -70,7 +74,7 @@ const SECTION_META: Record<string, { label: string; icon: string }> = {
 /* ── Section accordion ──────────────────────────────────────────── */
 function SectionShell({ id, label, icon, open, onToggle, children, badge, count }: { id: string; label: string; icon: string; open: boolean; onToggle: (s: string) => void; children: React.ReactNode; badge?: string; count?: number; }) {
   return (
-    <div className="section-card">
+    <div className="section-card" id={`section-${id}`}>
       <div className="section-header" onClick={() => onToggle(id)}>
         <div className="section-title">
           <span>{icon}</span>{label}
@@ -117,10 +121,18 @@ export default function ResumeBuilderPage() {
   const [sectionOrder, setSectionOrder] = useState<string[]>(DEFAULT_SECTION_ORDER);
   const [pageSize, setPageSize] = useState<"A4" | "Letter">("A4");
   const [draggedSectionKey, setDraggedSectionKey] = useState<string | null>(null);
+  const [customAccentColor, setCustomAccentColor] = useState<string | null>(null);
+  const [showSkillLevels, setShowSkillLevels] = useState(false);
+  const [skillLevels, setSkillLevels] = useState<Record<string, number>>({});
 
   /* Results */
   const [generatedResume, setGeneratedResume] = useState<GeneratedResume | null>(null);
   const [improveResult, setImproveResult] = useState<ImproveResponse | null>(null);
+
+  /* Local resume library (SQLite-backed, no accounts — see /api/resumes) */
+  const [savedResumeId, setSavedResumeId] = useState<string | null>(null);
+  const [savingToLibrary, setSavingToLibrary] = useState(false);
+  const [librarySavedAt, setLibrarySavedAt] = useState<number | null>(null);
 
   /* Autosave / restore + per-bullet AI improve */
   const [draftBanner, setDraftBanner] = useState<DraftPayload | null>(null);
@@ -137,17 +149,56 @@ export default function ResumeBuilderPage() {
     } catch { /* ignore corrupt draft */ }
   }, []);
 
+  // Open a resume saved in the local library (SQLite) when navigated to with ?resumeId=<id>,
+  // e.g. from the Dashboard's "My Resumes" list.
+  useEffect(() => {
+    const resumeId = new URLSearchParams(window.location.search).get("resumeId");
+    if (!resumeId) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/resumes/${resumeId}`);
+        if (!res.ok) return;
+        const json = await res.json() as { id: string; templateId: string; data: Record<string, unknown> };
+        const data = json.data;
+        if (data.personal) setPersonal(data.personal as PersonalInfo);
+        if (data.experience) setExperience(data.experience as WorkEntry[]);
+        if (data.education) setEducation(data.education as EduEntry[]);
+        if (data.selectedSkills) setSelectedSkills(data.selectedSkills as string[]);
+        if (data.industry) setIndustry(data.industry as string);
+        if (data.projects) setProjects(data.projects as ProjectEntry[]);
+        if (typeof data.includeProjects === "boolean") setIncludeProjects(data.includeProjects);
+        if (typeof data.certifications === "string") setCertifications(data.certifications);
+        if (typeof data.jobDescription === "string") setJobDescription(data.jobDescription);
+        if (json.templateId) setSelectedTemplate(json.templateId);
+        if (typeof data.showPhoto === "boolean") setShowPhoto(data.showPhoto);
+        if (data.photoDataUrl !== undefined) setPhotoDataUrl(data.photoDataUrl as string | null);
+        if (data.customSections) setCustomSections(data.customSections as CustomSection[]);
+        if (data.sectionOrder) setSectionOrder(data.sectionOrder as string[]);
+        if (data.pageSize) setPageSize(data.pageSize as "A4" | "Letter");
+        if (data.customAccentColor !== undefined) setCustomAccentColor(data.customAccentColor as string | null);
+        if (typeof data.showSkillLevels === "boolean") setShowSkillLevels(data.showSkillLevels);
+        if (data.skillLevels) setSkillLevels(data.skillLevels as Record<string, number>);
+        setSavedResumeId(json.id);
+        setMode((data.mode as Mode) ?? "scratch");
+        setRightPanel("preview");
+        setDraftBanner(null);
+        hydrated.current = true;
+      } catch { /* ignore load failure — user stays on the mode-select screen */ }
+    })();
+  }, []);
+
   // Autosave the in-progress draft (debounced) whenever the form changes, once a mode is active.
   useEffect(() => {
     if (mode === null) return;
     if (!hydrated.current) { hydrated.current = true; return; }
+    setLibrarySavedAt(null);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      const payload: DraftPayload = { mode, personal, experience, education, selectedSkills, industry, projects, includeProjects, certifications, jobDescription, selectedTemplate, showPhoto, photoDataUrl, customSections, sectionOrder, pageSize, savedAt: Date.now() };
+      const payload: DraftPayload = { mode, personal, experience, education, selectedSkills, industry, projects, includeProjects, certifications, jobDescription, selectedTemplate, showPhoto, photoDataUrl, customSections, sectionOrder, pageSize, customAccentColor, showSkillLevels, skillLevels, savedAt: Date.now() };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
     }, 800);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [mode, personal, experience, education, selectedSkills, industry, projects, includeProjects, certifications, jobDescription, selectedTemplate, showPhoto, photoDataUrl, customSections, sectionOrder, pageSize]);
+  }, [mode, personal, experience, education, selectedSkills, industry, projects, includeProjects, certifications, jobDescription, selectedTemplate, showPhoto, photoDataUrl, customSections, sectionOrder, pageSize, customAccentColor, showSkillLevels, skillLevels]);
 
   function restoreDraft() {
     if (!draftBanner) return;
@@ -167,6 +218,9 @@ export default function ResumeBuilderPage() {
     setCustomSections(draftBanner.customSections ?? []);
     setSectionOrder(draftBanner.sectionOrder ?? DEFAULT_SECTION_ORDER);
     setPageSize(draftBanner.pageSize ?? "A4");
+    setCustomAccentColor(draftBanner.customAccentColor ?? null);
+    setShowSkillLevels(draftBanner.showSkillLevels ?? false);
+    setSkillLevels(draftBanner.skillLevels ?? {});
     setRightPanel("preview");
     hydrated.current = true;
     setDraftBanner(null);
@@ -226,6 +280,8 @@ export default function ResumeBuilderPage() {
     setGeneratedResume(null); setImproveResult(null); setError(null); setPasteText(""); setShowPaste(false); setImportSource("file");
     setPhotoDataUrl(null); setShowPhoto(false);
     setCustomSections([]); setSectionOrder(DEFAULT_SECTION_ORDER); setPageSize("A4");
+    setCustomAccentColor(null); setShowSkillLevels(false); setSkillLevels({});
+    setSavedResumeId(null); setLibrarySavedAt(null);
     localStorage.removeItem(DRAFT_KEY);
     hydrated.current = false;
   }
@@ -385,6 +441,9 @@ export default function ResumeBuilderPage() {
       customSections: customSections.map(({ id, title, icon, visible, items }) => ({ id, title, icon, visible, items: items.map(({ heading, subheading, date, description }) => ({ heading, subheading, date, description })) })),
       sectionOrder,
       pageSize,
+      customAccentColor,
+      showSkillLevels,
+      skillLevels,
     };
   }
 
@@ -397,11 +456,21 @@ export default function ResumeBuilderPage() {
     setSelectedSkills(cur => cur.includes(kw) ? cur : [...cur, kw].slice(0, 18));
   }
 
+  const PREVIEW_SECTION_MAP: Record<string, string> = { summary: "personal", experience: "experience", projects: "projects", education: "education", skills: "skills", certifications: "certifications" };
+  function handlePreviewSectionClick(key: string) {
+    const targetId = key.startsWith("custom:") ? `custom-${key.slice(7)}` : (PREVIEW_SECTION_MAP[key] ?? key);
+    setOpenSection(targetId);
+    setTimeout(() => {
+      document.getElementById(`section-${targetId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  }
+
   function exportResumeData() {
     const payload = {
       version: 1,
       mode, personal, experience, education, selectedSkills, industry, projects, includeProjects,
       certifications, jobDescription, selectedTemplate, showPhoto, photoDataUrl, customSections, sectionOrder, pageSize,
+      customAccentColor, showSkillLevels, skillLevels,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -412,6 +481,35 @@ export default function ResumeBuilderPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  async function saveToLibrary() {
+    setSavingToLibrary(true);
+    try {
+      const payload = {
+        id: savedResumeId ?? undefined,
+        name: personal.fullName ? `${personal.fullName} \u2014 ${personal.targetRole || "Resume"}` : "Untitled Resume",
+        templateId: selectedTemplate,
+        data: {
+          version: 1,
+          mode, personal, experience, education, selectedSkills, industry, projects, includeProjects,
+          certifications, jobDescription, selectedTemplate, showPhoto, photoDataUrl, customSections, sectionOrder, pageSize,
+          customAccentColor, showSkillLevels, skillLevels,
+        },
+      };
+      const res = await fetch("/api/resumes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (res.ok) {
+        const json = (await res.json()) as { id: string; updatedAt: number };
+        setSavedResumeId(json.id);
+        setLibrarySavedAt(Date.now());
+      } else {
+        setError("Could not save to your library \u2014 please try again.");
+      }
+    } catch {
+      setError("Could not save to your library \u2014 please try again.");
+    } finally {
+      setSavingToLibrary(false);
+    }
   }
 
   function importResumeData(event: ChangeEvent<HTMLInputElement>) {
@@ -436,6 +534,9 @@ export default function ResumeBuilderPage() {
         if (data.customSections) setCustomSections(data.customSections);
         if (data.sectionOrder) setSectionOrder(data.sectionOrder);
         if (data.pageSize) setPageSize(data.pageSize);
+        if (data.customAccentColor !== undefined) setCustomAccentColor(data.customAccentColor);
+        if (typeof data.showSkillLevels === "boolean") setShowSkillLevels(data.showSkillLevels);
+        if (data.skillLevels) setSkillLevels(data.skillLevels);
         setMode(data.mode ?? "scratch");
         setRightPanel("preview");
         hydrated.current = true;
@@ -571,6 +672,11 @@ export default function ResumeBuilderPage() {
             <button className="button-ghost px-3 py-1.5 text-xs" onClick={openPrintView}>🖨 Download PDF</button>
           )}
           {(rightPanel === "preview" || rightPanel === "results") && (
+            <button className="button-ghost px-3 py-1.5 text-xs" onClick={saveToLibrary} disabled={savingToLibrary} title="Save this resume to your local library so it appears on the Dashboard">
+              {savingToLibrary ? "Saving…" : librarySavedAt ? "✓ Saved to Library" : "📚 Save to Library"}
+            </button>
+          )}
+          {(rightPanel === "preview" || rightPanel === "results") && (
             <button className="button-ghost px-3 py-1.5 text-xs" onClick={exportResumeData}>💾 Save Data (JSON)</button>
           )}
           <label className="button-ghost px-3 py-1.5 text-xs cursor-pointer">
@@ -612,15 +718,7 @@ export default function ResumeBuilderPage() {
                   <p className="text-sm font-semibold text-[var(--foreground)]">Profile Photo</p>
                   <p className="rf-hint mt-0.5">Optional — off by default. Photos can reduce ATS compatibility in the US/UK; common in EU/creative resumes.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowPhoto(v => !v)}
-                  disabled={!photoDataUrl}
-                  className="relative flex-shrink-0 ml-3 h-6 w-11 rounded-full transition-colors duration-200 disabled:opacity-40"
-                  style={{ backgroundColor: showPhoto ? "var(--accent)" : "var(--stroke)" }}
-                >
-                  <span className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200" style={{ transform: showPhoto ? "translateX(20px)" : "translateX(2px)" }} />
-                </button>
+                <ToggleSwitch checked={showPhoto} onChange={setShowPhoto} disabled={!photoDataUrl} className="ml-3" ariaLabel="Show photo on resume" />
               </div>
               <div className="flex items-center gap-3">
                 {photoDataUrl ? (
@@ -660,14 +758,10 @@ export default function ResumeBuilderPage() {
                       <span className="text-base">{isCustom ? custom!.icon || "📌" : meta?.icon}</span>
                       <span className="flex-1 text-sm font-semibold text-[var(--foreground)] truncate">{isCustom ? (custom!.title || "Custom Section") : meta?.label}</span>
                       {key === "projects" ? (
-                        <button type="button" onClick={() => setIncludeProjects(v => !v)} className="relative flex-shrink-0 h-5 w-9 rounded-full transition-colors" style={{ backgroundColor: includeProjects ? "var(--accent)" : "var(--stroke)" }}>
-                          <span className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform" style={{ transform: includeProjects ? "translateX(16px)" : "translateX(2px)" }} />
-                        </button>
+                        <ToggleSwitch checked={includeProjects} onChange={setIncludeProjects} size="sm" ariaLabel="Include Projects section" />
                       ) : isCustom ? (
                         <>
-                          <button type="button" onClick={() => toggleCustomSectionVisible(custom!.id)} className="relative flex-shrink-0 h-5 w-9 rounded-full transition-colors" style={{ backgroundColor: custom!.visible ? "var(--accent)" : "var(--stroke)" }}>
-                            <span className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform" style={{ transform: custom!.visible ? "translateX(16px)" : "translateX(2px)" }} />
-                          </button>
+                          <ToggleSwitch checked={custom!.visible} onChange={() => toggleCustomSectionVisible(custom!.id)} size="sm" ariaLabel={`Show ${custom!.title || "custom section"}`} />
                           <button type="button" className="button-danger px-2 py-1 text-[10px]" onClick={() => removeCustomSection(custom!.id)}>✕</button>
                         </>
                       ) : (
@@ -773,6 +867,39 @@ export default function ResumeBuilderPage() {
                   ))}</div>
                 </div>
               )}
+              {selectedSkills.length > 0 && (
+                <div className="flex items-center justify-between rounded-xl border border-[var(--stroke)] bg-[#fafaf8] px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">Show Proficiency Levels</p>
+                    <p className="rf-hint mt-0.5">Display a 1–5 dot rating next to each skill on your resume instead of plain tags.</p>
+                  </div>
+                  <ToggleSwitch checked={showSkillLevels} onChange={setShowSkillLevels} className="ml-3" ariaLabel="Show skill proficiency levels" />
+                </div>
+              )}
+              {showSkillLevels && selectedSkills.length > 0 && (
+                <div className="rounded-xl border border-[var(--stroke)] bg-white p-4 space-y-2.5">
+                  {selectedSkills.map(sk => {
+                    const level = skillLevels[sk] ?? 3;
+                    return (
+                      <div key={sk} className="flex items-center justify-between gap-3">
+                        <span className="text-sm text-[var(--foreground)] truncate">{sk}</span>
+                        <div className="flex gap-1 flex-shrink-0">
+                          {[1, 2, 3, 4, 5].map(n => (
+                            <button
+                              key={n}
+                              type="button"
+                              onClick={() => setSkillLevels(cur => ({ ...cur, [sk]: n }))}
+                              className="h-3.5 w-3.5 rounded-full border transition-colors"
+                              style={{ backgroundColor: n <= level ? "var(--accent)" : "transparent", borderColor: "var(--accent)" }}
+                              aria-label={`Set ${sk} proficiency to ${n} out of 5`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               <div className="flex gap-2">
                 <input className="rf-input flex-1" placeholder="Type a skill and press Enter…" value={customSkill} onChange={e => setCustomSkill(e.target.value)} onKeyDown={e => e.key === "Enter" && addCustomSkill()} />
                 <button className="button-secondary px-4 py-2 text-sm" onClick={addCustomSkill}>Add</button>
@@ -787,14 +914,7 @@ export default function ResumeBuilderPage() {
                   <p className="text-sm font-semibold text-[var(--foreground)]">Include Projects Section</p>
                   <p className="rf-hint mt-0.5">Turn off to hide this section from your resume without losing your entries.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIncludeProjects(v => !v)}
-                  className="relative flex-shrink-0 ml-3 h-6 w-11 rounded-full transition-colors duration-200"
-                  style={{ backgroundColor: includeProjects ? "var(--accent)" : "var(--stroke)" }}
-                >
-                  <span className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200" style={{ transform: includeProjects ? "translateX(20px)" : "translateX(2px)" }} />
-                </button>
+                <ToggleSwitch checked={includeProjects} onChange={setIncludeProjects} className="ml-3" ariaLabel="Include Projects section" />
               </div>
               {!includeProjects && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">Projects section is hidden from your resume. Your entries below are kept — just re-enable to show them again.</p>}
               {projects.length === 0 && <p className="text-xs text-[var(--ink-soft)]">Add personal, academic, or open-source projects to stand out.</p>}
@@ -872,6 +992,32 @@ export default function ResumeBuilderPage() {
                     </label>
                   ); })}
                   {filteredTemplates.length === 0 && <p className="col-span-2 text-xs text-[var(--ink-soft)] text-center py-4">No templates in this category yet.</p>}
+                </div>
+              </div>
+              <div className="rf-field">
+                <label className="rf-label">Accent Color <span className="rf-hint inline normal-case font-normal">— override this template's default accent</span></label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {["#2563eb", "#0f766e", "#dc2626", "#7c3aed", "#d97706", "#db2777", "#0891b2", "#4d7c0f"].map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setCustomAccentColor(c)}
+                      className="h-7 w-7 rounded-full border-2 transition-all"
+                      style={{ backgroundColor: c, borderColor: customAccentColor === c ? "var(--foreground)" : "transparent" }}
+                      aria-label={`Use accent color ${c}`}
+                    />
+                  ))}
+                  <label className="h-7 w-7 rounded-full border-2 border-[var(--stroke)] overflow-hidden cursor-pointer relative flex items-center justify-center" title="Custom color">
+                    <input
+                      type="color"
+                      value={customAccentColor ?? tpl.colors.accent}
+                      onChange={e => setCustomAccentColor(e.target.value)}
+                      className="absolute -top-1 -left-1 h-9 w-9 cursor-pointer"
+                    />
+                  </label>
+                  {customAccentColor && (
+                    <button type="button" onClick={() => setCustomAccentColor(null)} className="text-xs text-[var(--ink-soft)] underline underline-offset-2 hover:text-[var(--accent)]">Reset to default</button>
+                  )}
                 </div>
               </div>
               <div className="rf-field">
@@ -1001,12 +1147,12 @@ export default function ResumeBuilderPage() {
               <div className="flex items-center justify-between mb-5 max-w-2xl mx-auto">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-[var(--ink-soft)]">Live Preview</p>
-                  <p className="text-xs text-[var(--ink-soft)] mt-0.5">Updates as you fill in the form · Template: <span className="font-semibold" style={{ color: tpl.colors.accent }}>{tpl.name}</span></p>
+                  <p className="text-xs text-[var(--ink-soft)] mt-0.5">Click any section below to jump straight to editing it · Template: <span className="font-semibold" style={{ color: tpl.colors.accent }}>{tpl.name}</span></p>
                 </div>
                 {mode === "upload" && <span className="badge badge-green">Pre-filled from your resume</span>}
               </div>
               <div className="shadow-2xl max-w-2xl mx-auto flex justify-center">
-                <ScaledResumeDocument data={buildPrintPayload()} scale={0.62} />
+                <ScaledResumeDocument data={buildPrintPayload()} scale={0.62} onSectionClick={handlePreviewSectionClick} />
               </div>
             </div>
           )}
@@ -1057,7 +1203,7 @@ export default function ResumeBuilderPage() {
               {mode === "scratch" && generatedResume && (
                 <div className="space-y-4">
                   <div className="rounded-2xl overflow-hidden shadow-lg flex justify-center bg-[#e8e4db] py-6">
-                    <ScaledResumeDocument data={buildPrintPayload()} scale={0.72} />
+                    <ScaledResumeDocument data={buildPrintPayload()} scale={0.72} onSectionClick={handlePreviewSectionClick} />
                   </div>
                   {generatedResume.sections.map(sec => (
                     <div key={sec.title} className="card p-5">

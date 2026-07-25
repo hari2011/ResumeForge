@@ -43,6 +43,10 @@ export interface DocumentSection {
   title: string;
   bullets: string[];
 }
+export interface DocumentLinkEntry {
+  label: string;
+  url: string;
+}
 
 export const DEFAULT_SECTION_ORDER = ["summary", "experience", "projects", "education", "skills", "certifications"];
 
@@ -53,6 +57,12 @@ export interface ResumeDocumentData {
   phone: string;
   location: string;
   linkedin: string;
+  /** Optional personal site / portfolio URL, shown in the header contact row */
+  website?: string;
+  /** Optional GitHub profile URL or handle, shown in the header contact row */
+  github?: string;
+  /** Optional additional technical/coding profiles (LeetCode, HackerRank, Kaggle, Stack Overflow, etc.) */
+  links?: DocumentLinkEntry[];
   summary: string;
   experience: DocumentWorkEntry[];
   education: DocumentEduEntry[];
@@ -72,6 +82,12 @@ export interface ResumeDocumentData {
   sectionOrder?: string[];
   /** A4 (default) or US Letter physical page size */
   pageSize?: "A4" | "Letter";
+  /** Optional override of the template's default accent color (live color customization) */
+  customAccentColor?: string | null;
+  /** Optional per-skill proficiency level (1-5), keyed by skill name */
+  skillLevels?: Record<string, number>;
+  /** When true, render skills as a proficiency dot-rating list instead of plain pill tags */
+  showSkillLevels?: boolean;
 }
 
 /** Split free-form achievement text into clean bullet lines. */
@@ -129,21 +145,35 @@ function IconLink() {
     <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
   );
 }
+function IconCode() {
+  return (
+    <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
+  );
+}
 
 interface ContactRowProps {
   email: string;
   phone: string;
   location: string;
   linkedin: string;
+  website?: string;
+  github?: string;
+  links?: DocumentLinkEntry[];
   className: string;
 }
 
-function ContactRow({ email, phone, location, linkedin, className }: ContactRowProps) {
+function ContactRow({ email, phone, location, linkedin, website, github, links, className }: ContactRowProps) {
   const items: Array<{ icon: () => ReactNode; text: string }> = [];
   if (email) items.push({ icon: IconMail, text: email });
   if (phone) items.push({ icon: IconPhone, text: phone });
   if (location) items.push({ icon: IconPin, text: location });
   if (linkedin) items.push({ icon: IconLink, text: linkedin });
+  if (website) items.push({ icon: IconLink, text: website });
+  if (github) items.push({ icon: IconCode, text: github });
+  (links ?? []).forEach((link) => {
+    if (!link.url && !link.label) return;
+    items.push({ icon: IconCode, text: link.label ? `${link.label}: ${link.url}` : link.url });
+  });
   if (items.length === 0) return null;
   return (
     <div className={className}>
@@ -158,19 +188,24 @@ function ContactRow({ email, phone, location, linkedin, className }: ContactRowP
 }
 
 /** Full-fidelity, print-ready resume renderer used for both the on-screen "final look" preview and PDF export via print.
- * Supports 5 genuinely distinct layout engines (not just color swaps):
+ * Supports 7 genuinely distinct layout engines (not just color swaps):
  *  - single: bold colored header band, single column body (Modern)
  *  - sidebar: colored header band + two-column body with a tinted skills/education sidebar
  *  - compact: dense, monochrome, ATS-maximal single column with no color blocks (Jake's Resume / Harvard ATS style)
  *  - timeline: plain header, experience rendered as a vertical accent timeline
  *  - header-centered: traditional centered header with double rule, academic/executive convention
+ *  - banner-sidebar: sidebar + a colored rounded hero card header confined to the main column
+ *  - label-rows: centered minimal header with editorial label+content section rows
  *
  * Optional profile photo, a Projects section, and unlimited user-defined Custom Sections are all opt-in
  * and freely re-orderable via `sectionOrder` — matching (and extending) Reactive Resume's drag-and-drop
  * custom section model.
  */
-export function ResumeDocument({ data }: { data: ResumeDocumentData }) {
-  const tpl = resumeTemplates.find((t) => t.id === data.templateId) || resumeTemplates[0];
+export function ResumeDocument({ data, onSectionClick }: { data: ResumeDocumentData; onSectionClick?: (key: string) => void }) {
+  const baseTpl = resumeTemplates.find((t) => t.id === data.templateId) || resumeTemplates[0];
+  const tpl = data.customAccentColor
+    ? { ...baseTpl, colors: { ...baseTpl.colors, accent: data.customAccentColor } }
+    : baseTpl;
   const layout = tpl.layout;
   const monochrome = layout === "compact" || layout === "header-centered";
   const experienceEntries = data.experience.filter((e) => e.company || e.title);
@@ -272,15 +307,33 @@ export function ResumeDocument({ data }: { data: ResumeDocumentData }) {
   const skillsBlock: ReactNode | false = data.skills.length > 0 && (
     <section className="rd-section">
       {heading("Skills")}
-      <div className="rd-skill-wrap">
-        {data.skills.map((sk) => (
-          monochrome ? (
-            <span key={sk} className="rd-skill-plain" style={{ color: tpl.colors.primary, borderColor: tpl.colors.primary }}>{sk}</span>
-          ) : (
-            <span key={sk} className="rd-skill" style={{ backgroundColor: `${tpl.colors.accent}1a`, color: tpl.colors.accent }}>{sk}</span>
-          )
-        ))}
-      </div>
+      {data.showSkillLevels ? (
+        <div className="rd-skill-rated-wrap">
+          {data.skills.map((sk) => {
+            const level = data.skillLevels?.[sk] ?? 3;
+            return (
+              <div key={sk} className="rd-skill-rated-row">
+                <span className="rd-skill-rated-name" style={{ color: tpl.colors.primary }}>{sk}</span>
+                <span className="rd-skill-dots">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <span key={n} className="rd-skill-dot" style={{ backgroundColor: n <= level ? tpl.colors.accent : `${tpl.colors.primary}22` }} />
+                  ))}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rd-skill-wrap">
+          {data.skills.map((sk) => (
+            monochrome ? (
+              <span key={sk} className="rd-skill-plain" style={{ color: tpl.colors.primary, borderColor: tpl.colors.primary }}>{sk}</span>
+            ) : (
+              <span key={sk} className="rd-skill" style={{ backgroundColor: `${tpl.colors.accent}1a`, color: tpl.colors.accent }}>{sk}</span>
+            )
+          ))}
+        </div>
+      )}
     </section>
   );
 
@@ -345,7 +398,19 @@ export function ResumeDocument({ data }: { data: ResumeDocumentData }) {
   const renderKeys = (keys: string[]) => keys.map((k) => {
     const block = blockMap[k];
     if (!block) return null;
-    return <Fragment key={k}>{block}</Fragment>;
+    if (!onSectionClick) return <Fragment key={k}>{block}</Fragment>;
+    return (
+      <div
+        key={k}
+        className="rd-interactive-section"
+        onClick={() => onSectionClick(k)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSectionClick(k); } }}
+        role="button"
+        tabIndex={0}
+      >
+        {block}
+      </div>
+    );
   });
 
   /* ── Header variants (each supports an optional photo) ──────────── */
@@ -389,6 +454,23 @@ export function ResumeDocument({ data }: { data: ResumeDocumentData }) {
       <p className="rd-role-centered" style={{ color: tpl.colors.accent }}>{data.targetRole || "Target Role"}</p>
       <ContactRow email={data.email} phone={data.phone} location={data.location} linkedin={data.linkedin} className="rd-contact-centered" />
       <div className="rd-double-rule" style={{ borderColor: tpl.colors.primary }} />
+    </header>
+  );
+
+  const labelRowsHeader = (
+    <header className="rd-header-label" style={{ borderColor: tpl.colors.primary }}>
+      {photoImg && <div className="rd-photo-centered-wrap">{photoImg}</div>}
+      <h1 className="rd-name-label" style={{ color: tpl.colors.primary }}>{data.fullName || "Your Name"}</h1>
+      <p className="rd-role-label" style={{ color: tpl.colors.accent }}>{data.targetRole || "Target Role"}</p>
+      <ContactRow email={data.email} phone={data.phone} location={data.location} linkedin={data.linkedin} className="rd-contact-label" />
+    </header>
+  );
+
+  const panelHeader = (
+    <header className="rd-header-panel" style={{ backgroundColor: tpl.colors.primary }}>
+      <h1 className="rd-name-panel">{data.fullName || "Your Name"}</h1>
+      <p className="rd-role-panel" style={{ color: tpl.colors.accent }}>{data.targetRole || "Target Role"}</p>
+      <ContactRow email={data.email} phone={data.phone} location={data.location} linkedin={data.linkedin} className="rd-contact-panel" />
     </header>
   );
 
@@ -447,6 +529,38 @@ export function ResumeDocument({ data }: { data: ResumeDocumentData }) {
     );
   }
 
+  /* ── Layout: banner-sidebar (sidebar + colored hero card confined to main column) ─ */
+  if (layout === "banner-sidebar") {
+    const asideKeys = order.filter((k) => k === "skills" || k === "education" || k === "certifications" || k.startsWith("custom:"));
+    const mainKeys = order.filter((k) => !asideKeys.includes(k));
+    return (
+      <div className={`rd-page ${pageSizeClass} rd-page-sans rd-banner-sidebar-layout`} style={{ backgroundColor: tpl.colors.background }}>
+        <div className="rd-sidebar-body">
+          <aside className="rd-sidebar-col" style={{ backgroundColor: `${tpl.colors.primary}14`, borderLeft: `1mm solid ${tpl.colors.accent}` }}>
+            {photoImg && <div className="rd-sidebar-photo-wrap">{photoImg}</div>}
+            {renderKeys(asideKeys)}
+          </aside>
+          <main className="rd-main-col">
+            {panelHeader}
+            {renderKeys(mainKeys)}
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Layout: label-rows (editorial label+content section rows) ─── */
+  if (layout === "label-rows") {
+    return (
+      <div className={`rd-page ${pageSizeClass} rd-page-sans rd-label-rows-layout`} style={{ backgroundColor: tpl.colors.background }}>
+        {labelRowsHeader}
+        <div className="rd-single-body">
+          {renderKeys(order)}
+        </div>
+      </div>
+    );
+  }
+
   /* ── Layout: single (default — bold colored banner) ─────────────── */
   return (
     <div className={`rd-page ${pageSizeClass} rd-page-sans rd-single-layout`} style={{ backgroundColor: tpl.colors.background, borderLeft: `1.5mm solid ${tpl.colors.accent}` }}>
@@ -464,7 +578,7 @@ export function ResumeDocument({ data }: { data: ResumeDocumentData }) {
  * separate simplified mock. Uses a ResizeObserver to keep the outer wrapper's box height in sync
  * with the scaled content (since CSS transform doesn't affect layout flow).
  */
-export function ScaledResumeDocument({ data, scale }: { data: ResumeDocumentData; scale: number }) {
+export function ScaledResumeDocument({ data, scale, onSectionClick }: { data: ResumeDocumentData; scale: number; onSectionClick?: (key: string) => void }) {
   const innerRef = useRef<HTMLDivElement>(null);
   const [naturalHeight, setNaturalHeight] = useState(0);
 
@@ -481,7 +595,7 @@ export function ScaledResumeDocument({ data, scale }: { data: ResumeDocumentData
   return (
     <div style={{ width: `${210 * scale}mm`, height: naturalHeight ? `${naturalHeight * scale}px` : undefined, overflow: "hidden" }}>
       <div ref={innerRef} style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}>
-        <ResumeDocument data={data} />
+        <ResumeDocument data={data} onSectionClick={onSectionClick} />
       </div>
     </div>
   );

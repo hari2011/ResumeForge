@@ -1,4 +1,4 @@
-import { AtsScoreResult, ExperienceLevel, ResumeSection } from "@/types/resume";
+import { AtsScoreResult, ExperienceLevel, ProofreadIssue, ProofreadResult, ResumeSection } from "@/types/resume";
 
 const COMMON_FILLER_WORDS = ["hardworking", "team player", "responsible", "passionate"];
 
@@ -156,3 +156,96 @@ export function enhanceBullets(rawAchievements: string, role: string): string[] 
 
   return lines.map(normalizeWithImpact);
 }
+
+/** Deterministic single-bullet improver used as a fallback for the per-bullet AI "improve" action. */
+export function improveSingleBullet(rawText: string, role: string): string {
+  const metricPattern = /\b\d+%|\$\d+|\d+\s*(users|clients|projects|teams|months|years)\b/i;
+  const weakStarters = /^(responsible for|worked on|helped with|was involved in|did|handled)\b/i;
+  const strongVerbs = ["Led", "Delivered", "Drove", "Built", "Optimized", "Launched", "Streamlined", "Spearheaded"];
+
+  let text = rawText.replace(/^[-*•]\s*/, "").trim();
+  if (!text) {
+    return `Delivered measurable results as a ${role}, improving execution speed and stakeholder confidence.`;
+  }
+
+  if (weakStarters.test(text)) {
+    const verb = strongVerbs[text.length % strongVerbs.length];
+    text = text.replace(weakStarters, verb);
+  }
+
+  text = text.replace(/\.$/, "");
+
+  if (!metricPattern.test(text)) {
+    text = `${text}, improving measurable outcomes for the team`;
+  }
+
+  return text.endsWith(".") ? text : `${text}.`;
+}
+
+/** Deterministic heuristic proofreader — always runs as a baseline, even without AI configured. */
+export function proofreadResumeHeuristic(resumeText: string): ProofreadResult {
+  const issues: ProofreadIssue[] = [];
+  const lines = resumeText.split("\n").map((l) => l.trim()).filter(Boolean);
+
+  const firstPersonPattern = /\b(I|I'm|I've|my|me)\b/;
+  const repeatedWordPattern = /\b(\w+)\s+\1\b/i;
+  const passivePattern = /\b(was|were|been|being|is|are)\s+\w+ed\b/i;
+  const weakStarters = /^(responsible for|worked on|helped with|was involved in|duties included)\b/i;
+
+  let firstPersonHit = false;
+  let passiveHits = 0;
+  let weakStarterHits = 0;
+  let longSentenceHits = 0;
+  let hasMetric = false;
+  let doubleSpaceHits = 0;
+
+  for (const line of lines) {
+    if (!firstPersonHit && firstPersonPattern.test(line)) {
+      firstPersonHit = true;
+      issues.push({ category: "tone", severity: "high", message: "Avoid first-person pronouns (\"I\", \"my\") — resumes read best in implied first person.", excerpt: line.slice(0, 80) });
+    }
+    const repeatMatch = line.match(repeatedWordPattern);
+    if (repeatMatch) {
+      issues.push({ category: "repetition", severity: "medium", message: `Repeated word "${repeatMatch[1]}" found back-to-back.`, excerpt: line.slice(0, 80) });
+    }
+    if (passivePattern.test(line)) passiveHits += 1;
+    if (weakStarters.test(line)) weakStarterHits += 1;
+    if (line.split(/\s+/).length > 35) longSentenceHits += 1;
+    if (/\b\d+%|\$\d+|\d+\s*(users|clients|projects|teams|months|years)\b/i.test(line)) hasMetric = true;
+    if (/ {2,}/.test(line)) doubleSpaceHits += 1;
+  }
+
+  if (passiveHits > 0) {
+    issues.push({ category: "grammar", severity: "medium", message: `Possible passive voice detected in ${passiveHits} line${passiveHits > 1 ? "s" : ""}. Prefer active voice, e.g. "Led the team" instead of "The team was led by".` });
+  }
+  if (weakStarterHits > 0) {
+    issues.push({ category: "clarity", severity: "medium", message: `${weakStarterHits} bullet${weakStarterHits > 1 ? "s" : ""} start with a weak phrase like "Responsible for". Start with a strong action verb instead.` });
+  }
+  if (longSentenceHits > 0) {
+    issues.push({ category: "clarity", severity: "low", message: `${longSentenceHits} line${longSentenceHits > 1 ? "s are" : " is"} quite long (35+ words). Consider splitting into shorter, punchier bullets.` });
+  }
+  if (!hasMetric) {
+    issues.push({ category: "clarity", severity: "low", message: "No measurable results detected. Add numbers, percentages, or scale to strengthen impact (e.g. \"reduced costs by 18%\")." });
+  }
+  if (doubleSpaceHits > 0) {
+    issues.push({ category: "formatting", severity: "low", message: "Double spaces detected — clean up spacing for a polished, professional look." });
+  }
+
+  const fillerHits = COMMON_FILLER_WORDS.filter((word) => resumeText.toLowerCase().includes(word));
+  if (fillerHits.length > 0) {
+    issues.push({ category: "clarity", severity: "low", message: `Generic filler language found: ${fillerHits.join(", ")}. Replace with specific, evidence-backed strengths.` });
+  }
+
+  const severityPenalty = { high: 12, medium: 6, low: 2 } as const;
+  const score = Math.max(40, Math.min(100, 100 - issues.reduce((sum, issue) => sum + severityPenalty[issue.severity], 0)));
+
+  const verdict = issues.length === 0
+    ? "Clean! No major writing issues detected."
+    : issues.some((i) => i.severity === "high")
+      ? "A few important issues found — fix these before applying."
+      : `Mostly clean — ${issues.length} minor suggestion${issues.length > 1 ? "s" : ""} to polish.`;
+
+  return { score, issues, verdict };
+}
+
+

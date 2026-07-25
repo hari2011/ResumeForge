@@ -92,3 +92,17 @@ export interface MarketTrendItem {
   hiringMomentum: "rising" | "stable" | "cooling";
   summary: string;
 }
+
+export interface ProofreadIssue {
+  category: "grammar" | "clarity" | "tone" | "repetition" | "formatting";
+  severity: "high" | "medium" | "low";
+  message: string;
+  excerpt?: string;
+}
+
+export interface ProofreadResult {
+  score: number;
+  issues: ProofreadIssue[];
+  verdict: string;
+}
+

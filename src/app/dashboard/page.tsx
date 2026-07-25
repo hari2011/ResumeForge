@@ -102,9 +102,9 @@ export default function DashboardPage() {
           </section>
 
           <section className="card p-5">
-            <h2 className="headline text-xl">All Templates</h2>
+            <h2 className="headline text-xl">All Templates <span className="text-sm font-normal text-[var(--ink-soft)]">({resumeTemplates.length})</span></h2>
             <div className="mt-3 grid grid-cols-3 gap-2">
-              {resumeTemplates.map((template) => (
+              {resumeTemplates.slice(0, 9).map((template) => (
                 <Link key={template.id} href="/templates">
                   <div
                     className="h-14 rounded-lg border transition hover:scale-105"

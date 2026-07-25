@@ -8,8 +8,7 @@ const NAV_SECTIONS = [
   {
     label: "Resume Builder",
     items: [
-      { label: "New Resume", href: "/new-resume", icon: "✦" },
-      { label: "Improve Existing", href: "/improve-resume", icon: "⭐" },
+      { label: "Resume Builder", href: "/new-resume", icon: "✦" },
       { label: "Templates", href: "/templates", icon: "▣" },
     ],
   },

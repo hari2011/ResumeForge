@@ -1,34 +1,49 @@
 # ResumeForge AI
 
-ResumeForge AI is a full-stack Next.js application to create high-quality resumes from scratch or improve existing resumes using market-aware intelligence.
+ResumeForge AI is a full-stack Next.js application that builds a resume from scratch or improves an existing one in a single unified workspace, backed by market-aware AI intelligence.
 
 **🎯 NEW:** Full local LLM support - run entirely offline with Ollama or llama.cpp, zero API costs!
 
+## ✨ Latest features (unified builder v2)
+
+- **One builder, two modes** — `/new-resume` opens a mode-selection screen: *Build from Scratch* or *Upload & Improve*. `/improve-resume` now simply redirects here, so all your old links still work.
+- **Import from LinkedIn** — export your own LinkedIn profile as a PDF (`Profile → More → Save to PDF`) and upload it, or paste the profile text directly. We never log in to or scrape LinkedIn on your behalf.
+- **40+ resume templates** — 21 curated color palettes × 2 layout engines (single-column and two-column sidebar) across 8 categories: Modern, Classic, Minimal, Creative, Executive, Academic, Technical, and ATS-safe. Filter by category directly inside the builder or on `/templates`.
+- **Pixel-perfect PDF export** — the "🖨 Download PDF" button opens a dedicated print view (`/resume-print`) that renders your exact template (colors, layout, fonts) and triggers the browser's native print-to-PDF, so the download matches the on-screen design exactly.
+- **Live Resume Score (Build → Score → Target)** — a score panel recalculates on every keystroke while you fill in the form, with a section completion checklist and one-click "+" buttons to add missing job-description keywords straight into your Skills.
+- **Per-bullet AI rewrite** — click "✨ AI Improve" next to any experience entry to rewrite just that bullet block into stronger, metric-aware language.
+- **AI-assisted proofreading** — click "🔍 Proofread" for a grammar/clarity/tone report (passive voice, repetition, filler words, missing metrics, first-person pronouns) with a writing-quality score. Runs on deterministic heuristics with an optional AI pass for extra suggestions.
+- **Autosave & draft recovery** — your in-progress resume saves to your browser automatically; if you navigate away, a "Resume in progress found" banner lets you pick up where you left off.
+- **Section completion guidance** — a slim progress bar tracks how complete your resume is (contact info, summary, experience, education, skills) so you always know what's left.
+
 ## What this includes
 
-- Create-from-scratch resume generation flow
-- Existing resume enhancement flow
-- Upload resume files (PDF, DOCX, TXT) and auto-extract text
-- ATS scoring API with keyword and quality analysis
-- Resume parsing API for legacy text and multipart files
+- Unified create-from-scratch + improve-existing resume workspace
+- Upload resume files (PDF, DOCX, TXT) or LinkedIn PDF export, auto-extracted into an editable structured form
+- ATS scoring API with keyword and quality analysis, plus a live client-side score while editing
+- Resume proofreading/grammar-check API (heuristic + optional AI)
+- Per-bullet AI rewrite API
+- Pixel-perfect print-to-PDF export matching the chosen template exactly
+- 40+ templates across 8 categories and 2 layout engines
 - Market trends module with role-level demand signals
 - **Optional local LLM integration** (Ollama/llama.cpp) - free, offline, portable
-- Optional OpenAI integration with deterministic fallback
+- Optional OpenAI integration with deterministic fallback everywhere
 
 ## Competitive reference strategy
 
-This build takes inspiration from well-known resume platforms (for example, LiveCareer) and implements comparable core capabilities while adding stronger differentiation:
+This build benchmarks against leading resume platforms — Kickresume, Rezi, Teal, EnhanCV, Resume.io, Novorésumé — and implements comparable core capabilities while adding stronger differentiation:
 
 - Comparable baseline:
-  - ATS-ready output orientation
-  - role-specific content suggestions
-  - upload or paste existing resume and modernize quickly
-  - template and example mindset for faster writing
+  - ATS-ready output orientation with real-time scoring (Rezi's "Build/Score/Target" loop)
+  - LinkedIn import and existing-resume upload (Kickresume, EnhanCV)
+  - large, categorized template library (Kickresume's 40+ templates)
+  - built-in proofreading/grammar checker (EnhanCV)
+  - one-click job-description keyword targeting (Rezi)
 - Added differentiators:
   - market trend intelligence for role targeting
-  - filler-language and impact-quality checks
-  - unified create + improve workspace with consistent scoring
-  - **local LLM support** - zero API costs, fully portable
+  - unified create + improve workspace with consistent scoring (no separate tools/tabs)
+  - pixel-perfect print-to-PDF that always matches the live preview
+  - **local LLM support** - zero API costs, fully portable, fully private
 
 ## Tech stack
 
@@ -300,21 +315,34 @@ See [SETUP_LOCAL_LLM.md](SETUP_LOCAL_LLM.md) for:
 
 - Home: /
 - Dashboard: /dashboard
-- New resume: /new-resume
-- Improve resume: /improve-resume
+- Resume builder (build from scratch or upload & improve): /new-resume
+- Improve resume (redirects to /new-resume): /improve-resume
+- Pixel-perfect print/export view: /resume-print
+- Templates gallery (40+ templates, filter by category): /templates
+- ATS score checker: /ats-score
+- Bullet suggestions: /suggestions
+- Cover letter generator: /cover-letter
 - Market trends: /market-trends
+- Interview prep: /interview-prep
 
 ## API routes
 
-- POST /api/generate
-- POST /api/improve
+- POST /api/generate — build a resume from structured form input
+- POST /api/improve — rewrite an existing resume with AI analysis + ATS score
+- POST /api/improve-bullet — rewrite a single experience bullet block
+- POST /api/proofread — grammar/clarity/tone check with a writing-quality score
 - POST /api/parse
   - JSON: { resumeText }
-  - multipart/form-data: file (PDF, DOCX, TXT)
-- POST /api/ats-score
+  - multipart/form-data: file (PDF, DOCX, TXT, or LinkedIn PDF export)
+- POST /api/parse-structured — turn raw resume/LinkedIn text into structured fields (name, experience, education, skills…)
+- POST /api/ats-score — keyword/quality ATS scoring, optional AI-enhanced insights
+- POST /api/suggestions — role-specific bullet suggestions (35+ roles, O*NET-enriched)
+- POST /api/cover-letter — generate a tone-matched cover letter
+- POST /api/export — plain-text-based PDF/DOCX/TXT export (fallback; use /resume-print for pixel-perfect PDF)
 - GET /api/market-trends
 
 ## Notes
 
-- If OPENAI_API_KEY is missing, all flows still work using deterministic generation logic.
-- API outputs are ATS-readable plain text and structured data.
+- If OPENAI_API_KEY is missing, every flow still works using deterministic heuristic logic — including proofreading and per-bullet rewriting.
+- For the most visually accurate PDF, use the "🖨 Download PDF" button inside the builder (print-to-PDF flow) rather than the legacy /api/export PDF, which is plain-text only.
+- LinkedIn import works by exporting your own profile as a PDF from LinkedIn's official "Save to PDF" feature — the app never logs in to or scrapes LinkedIn.

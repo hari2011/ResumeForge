@@ -495,3 +495,383 @@ body {
   position: relative;
   z-index: 1;
 }
+
+/* ── Resume Document (pixel-perfect print/export render) ──── */
+.rd-page {
+  margin: 0 auto;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.15);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #1a1a1a;
+  overflow: hidden;
+}
+
+/* Modern layouts (single/sidebar/timeline) use a clean sans-serif throughout for a
+   more contemporary, SaaS-style richness. Compact/header-centered keep Georgia serif
+   for a traditional ATS/academic feel. */
+.rd-page-sans,
+.rd-page-sans .rd-body,
+.rd-page-sans .rd-entry-sub,
+.rd-page-sans .rd-bullets li {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+}
+
+.rd-page-a4 {
+  width: 210mm;
+  min-height: 297mm;
+  page: rd-a4-page;
+}
+
+.rd-page-letter {
+  width: 215.9mm;
+  min-height: 279.4mm;
+  page: rd-letter-page;
+}
+
+.rd-header {
+  padding: 14mm 16mm 8mm;
+}
+
+.rd-name {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 26pt;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.rd-role {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 11pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 3mm 0 0;
+}
+
+.rd-contact {
+  font-size: 9pt;
+  color: rgba(255,255,255,0.85);
+  margin: 3.5mm 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1mm 4.5mm;
+}
+
+.rd-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.3mm;
+  white-space: nowrap;
+}
+
+.rd-contact-item svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+/* ── Header photo (opt-in) ──────────────────────────────────── */
+.rd-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6mm;
+}
+
+.rd-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.rd-photo {
+  width: 24mm;
+  height: 24mm;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.5);
+}
+
+.rd-header-plain .rd-photo,
+.rd-header-timeline .rd-photo {
+  border-color: rgba(0,0,0,0.1);
+}
+
+.rd-photo-centered-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 3mm;
+}
+
+.rd-photo-centered-wrap .rd-photo {
+  width: 22mm;
+  height: 22mm;
+  border-color: rgba(0,0,0,0.1);
+}
+
+.rd-single-body {
+  padding: 8mm 16mm 14mm;
+}
+
+.rd-sidebar-body {
+  display: flex;
+  min-height: 240mm;
+}
+
+.rd-sidebar-col {
+  width: 62mm;
+  flex-shrink: 0;
+  padding: 8mm 10mm 14mm;
+}
+
+.rd-main-col {
+  flex: 1;
+  padding: 8mm 14mm 14mm 12mm;
+}
+
+.rd-section {
+  margin-bottom: 8mm;
+}
+
+.rd-heading {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 10.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-bottom: 2mm;
+  margin: 0 0 3.5mm;
+  border-bottom: 1.5px solid;
+}
+
+.rd-body {
+  font-size: 10pt;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.rd-entry {
+  margin-bottom: 4mm;
+}
+
+.rd-entry-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6mm;
+}
+
+.rd-entry-title {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 10.5pt;
+  font-weight: 700;
+}
+
+.rd-entry-date {
+  font-size: 8.5pt;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rd-entry-sub {
+  font-size: 9pt;
+  margin: 0.5mm 0 1.5mm;
+  font-style: italic;
+}
+
+.rd-bullets {
+  list-style: none;
+  margin: 1.5mm 0 0;
+  padding: 0;
+}
+
+.rd-bullets li {
+  display: flex;
+  gap: 2mm;
+  font-size: 9.5pt;
+  line-height: 1.55;
+  margin-bottom: 1.2mm;
+}
+
+.rd-skill-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5mm;
+}
+
+.rd-skill {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 8.5pt;
+  font-weight: 600;
+  padding: 1mm 2.5mm;
+  border-radius: 3px;
+}
+
+.rd-skill-plain {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 8.5pt;
+  font-weight: 600;
+  padding: 0.8mm 2.5mm;
+  border-radius: 3px;
+  border: 1px solid;
+}
+
+/* ── Compact layout (ATS-maximal, monochrome, dense) ────────── */
+.rd-header-plain {
+  padding: 12mm 16mm 5mm;
+  border-bottom: 1.5px solid;
+}
+
+.rd-name-plain {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 22pt;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.rd-role-plain {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 10pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 2mm 0 0;
+}
+
+.rd-contact-plain {
+  font-size: 8.5pt;
+  opacity: 0.8;
+  margin: 3mm 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1mm 4.5mm;
+}
+
+.rd-compact-body {
+  padding: 6mm 16mm 14mm;
+}
+
+.rd-compact-layout .rd-section {
+  margin-bottom: 5.5mm;
+}
+
+/* ── Timeline layout ─────────────────────────────────────────── */
+.rd-header-timeline {
+  padding: 14mm 16mm 6mm;
+  border-bottom: 2px solid;
+}
+
+.rd-name-timeline {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 25pt;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.rd-timeline {
+  position: relative;
+  padding-left: 5mm;
+  border-left: 1.5px solid rgba(0,0,0,0.12);
+}
+
+.rd-timeline-item {
+  position: relative;
+  margin-bottom: 4mm;
+  padding-left: 4mm;
+}
+
+.rd-timeline-dot {
+  position: absolute;
+  left: -8.35mm;
+  top: 1.5mm;
+  width: 3mm;
+  height: 3mm;
+  border-radius: 50%;
+}
+
+/* ── Header-centered layout (academic / executive) ───────────── */
+.rd-header-centered {
+  padding: 14mm 16mm 6mm;
+  text-align: center;
+}
+
+.rd-name-centered {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 24pt;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
+.rd-role-centered {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 10pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 2mm 0 0;
+}
+
+.rd-contact-centered {
+  font-size: 8.5pt;
+  margin: 3mm 0 0;
+  opacity: 0.85;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1mm 4.5mm;
+}
+
+.rd-double-rule {
+  margin: 4mm auto 0;
+  max-width: 100%;
+  border-top: 1.5px solid;
+  position: relative;
+}
+
+.rd-double-rule::after {
+  content: '';
+  display: block;
+  margin-top: 1mm;
+  border-top: 0.5px solid;
+  border-color: inherit;
+  opacity: 0.5;
+}
+
+.rd-centered-layout .rd-heading {
+  text-align: left;
+}
+
+/* ── Print mode ──────────────────────────────────────────── */
+@page rd-a4-page {
+  size: A4;
+  margin: 0;
+}
+
+@page rd-letter-page {
+  size: letter;
+  margin: 0;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  html, body {
+    background: #fff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .rd-page {
+    box-shadow: none;
+    margin: 0;
+    width: 100%;
+    min-height: 0;
+  }
+}
+
+
